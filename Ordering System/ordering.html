@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Pitstop</title>
+    <link rel="stylesheet" href="ordering.css" />
+</head>
+<body>
+    <!-- Topbar -->
+    <div class="topbar">
+        <div class="container top-inner">
+            <div class="brand">
+                <div class="logo">🍽️</div>
+                <div class="brand-text">
+                    <div class="brand-name">Pitstop</div>
+                </div>
+            </div>
+
+            <div class="top-controls">
+                <button class="address-btn">
+                    <span class="pin">📍</span>
+                    <span>Select your Address</span>
+                    <span class="caret">▾</span>
+                </button>
+
+                <div class="right-actions">
+                    <button class="auth">Register / Log in</button>
+                    <button class="order-now" id="openCartBtn">🛒 Order Now</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nav bar -->
+    <nav class="navbar">
+        <div class="container nav-inner">
+            <ul class="nav-links">
+                <li class="active"><a href="#menu">Home</a></li>
+                <li><a href="#" id="menuNavLink">Menu</a></li>
+                <li><a href="#deals">Order</a></li>
+                <li><a href="#help">Help</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero / Carousel -->
+    <section class="hero container">
+        <div class="carousel" id="carousel">
+            <button class="carousel-arrow left" data-dir="left">&#10094;</button>
+
+            <div class="slides" id="slides">
+                <div class="slide" style="background-image: url('./hero1.png')">
+                    <div class="promo">
+                        <h1></h1>
+                        <p>Delivery available only in Brgy.San Pascual.</p>
+                    </div>
+                </div>
+
+                <div class="slide" style="background-image: url('https://source.unsplash.com/1600x700/?pizza')">
+                    <div class="promo">
+                        <h1>Hot & Fresh</h1>
+                        <p>Get your favorites.</p>
+                    </div>
+                </div>
+
+                <div class="slide" style="background-image: url('https://source.unsplash.com/1600x700/?burger')">
+                    <div class="promo">
+                        <h1>Enjoy your Food</h1>
+                        <p>We are happy to Serve</p>
+                    </div>
+                </div>
+            </div>
+
+            <button class="carousel-arrow right" data-dir="right">&#10095;</button>
+            <div class="carousel-dots" id="carouselDots"></div>
+        </div>
+    </section>
+
+    <!-- Featured Menu -->
+    <section id="menu" class="section container">
+        <div class="section-head">
+            <h2>Featured Menu</h2>
+            <a class="view-all" href="#menu">View All</a>
+        </div>
+
+        <div class="cards" id="menuCards">
+            <!-- Cards populated dynamically -->
+        </div>
+    </section>
+
+    <!-- Cart Pane -->
+    <aside class="cart-pane" id="cartPane" aria-hidden="true">
+        <div class="cart-inner">
+            <div class="cart-head">
+                <h3>Your Order</h3>
+                <button class="close-cart" id="closeCartBtn">✕</button>
+            </div>
+
+            <div id="cartList" class="cart-list">
+                <div class="muted">Your cart is empty.</div>
+            </div>
+
+            <div class="cart-footer">
+                <div class="total">
+                    <span>Subtotal</span>
+                    <strong id="subtotal">₱0.00</strong>
+                </div>
+                <button id="checkoutBtn" class="primary-btn">Checkout</button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Menu Page -->
+    <section id="menuPage" class="menu-section" style="display:none;">
+        <div class="menu-wrapper">
+            <aside class="menu-categories">
+                <h3>Categories</h3>
+                <ul id="menuCategoryList"></ul>
+            </aside>
+
+            <div class="menu-items-area">
+                <h2 id="menuCategoryTitle">Select a Category</h2>
+                <div id="menuItemsGrid" class="menu-grid"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="site-footer container">
+        <div>© Pitstop </div>
+    </footer>
+
+    <script src="ordering.js"></script>
+</body>
+</html>
