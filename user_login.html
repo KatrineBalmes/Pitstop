@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>User Login - Pitstop</title>
+<link rel="stylesheet" href="user.css" />
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body>
+<header class="topbar">
+    <div class="logo">Pitstop</div>
+    <nav>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
+    </nav>
+</header>
+
+<main class="intro-section">
+    <div class="login-container">
+        <h2>User Login</h2>
+        <form class="login-form" id="loginForm">
+            <div class="input-group">
+                <label for="email"><i class="fas fa-envelope"></i> Email</label>
+                <input type="email" id="email" name="email" placeholder="Enter your email" required autocomplete="email">
+            </div>
+
+            <div class="input-group">
+                <label for="password"><i class="fas fa-lock"></i> Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
+            </div>
+
+            <div class="options">
+                <a href="forgot_password.html" class="forgot-password">Forgot Password?</a>
+            </div>
+
+            <button type="submit" class="login-btn">Login</button>
+
+            <p class="signup-text">
+                Don't have an account? <a href="signup.html" class="create-account">Create one</a>
+            </p>
+        </form>
+        
+        <!-- Debug info (remove in production) -->
+        <div id="debugInfo" style="margin-top:20px;padding:10px;background:rgba(255,255,255,0.1);border-radius:8px;font-size:12px;color:#cbd5e1;display:none;">
+            <strong>Debug Info:</strong>
+            <div id="debugContent"></div>
+        </div>
+    </div>
+</main>
+
+<script>
+const loginForm = document.getElementById('loginForm');
+const emailInput = document.getElementById('email');
+const passwordInput = document.getElementById('password');
+
+// Debug: Show stored users on page load
+window.addEventListener('load', function() {
+    const stored = localStorage.getItem('users');
+    console.log('=== LOGIN PAGE DEBUG ===');
+    console.log('Stored users:', stored);
+    
+    if(stored) {
+        try {
+            const users = JSON.parse(stored);
+            console.log('Parsed users:', users);
+            console.log('Number of users:', users.length);
+            
+            // Show debug info (optional - remove in production)
+            const debugDiv = document.getElementById('debugInfo');
+            const debugContent = document.getElementById('debugContent');
+            debugContent.innerHTML = `
+                <div>Total users: ${users.length}</div>
+                <div style="margin-top:5px;">Emails: ${users.map(u => u.email).join(', ')}</div>
+            `;
+            // Uncomment to show debug panel:
+            // debugDiv.style.display = 'block';
+        } catch(e) {
+            console.error('Error parsing users:', e);
+        }
+    } else {
+        console.log('No users stored yet');
+    }
+});
+
+loginForm.addEventListener('submit', function(e){
+    e.preventDefault();
+
+    const email = emailInput.value.trim();
+    const password = passwordInput.value.trim();
+
+    console.log('=== LOGIN ATTEMPT ===');
+    console.log('Email entered:', email);
+    console.log('Password entered:', password.replace(/./g, '*')); // Hide password in console
+
+    // Validation
+    if(!email || !password) {
+        alert('Please enter both email and password');
+        return;
+    }
+
+    // Get users from localStorage
+    let users = [];
+    try {
+        const stored = localStorage.getItem('users');
+        if(!stored) {
+            console.log('No users found in localStorage');
+            alert('No account found. Please sign up first!');
+            return;
+        }
+        
+        users = JSON.parse(stored);
+        console.log('Retrieved users:', users);
+        console.log('Number of users:', users.length);
+        
+    } catch(e) {
+        console.error('Error reading localStorage:', e);
+        alert('Error accessing user data. Please try again.');
+        return;
+    }
+
+    // Find matching user
+    const user = users.find(u => {
+        console.log(`Checking user: ${u.email}`);
+        console.log(`Email match: ${u.email === email}`);
+        console.log(`Password match: ${u.password === password}`);
+        return u.email === email && u.password === password;
+    });
+
+    if(user){
+        console.log('Login successful! User found:', user);
+        
+        // Save logged in user data for checkout
+        try {
+            localStorage.setItem('loggedInUser', JSON.stringify(user));
+            console.log('Logged in user saved to localStorage');
+            
+            alert('Login successful! Welcome ' + user.fullname);
+            window.location.href = 'ordering.html';
+        } catch(e) {
+            console.error('Error saving logged in user:', e);
+            alert('Login successful but error saving session. Please try again.');
+        }
+    } else {
+        console.log('Login failed - no matching user found');
+        console.log('Available users:', users.map(u => ({ email: u.email })));
+        
+        alert('Invalid email or password! Please check your credentials.');
+    }
+});
+
+// Test localStorage availability
+try {
+    localStorage.setItem('test', 'test');
+    localStorage.removeItem('test');
+    console.log('localStorage is available');
+} catch(e) {
+    console.error('localStorage is NOT available:', e);
+    alert('Your browser does not support local storage. Please enable it or use a different browser.');
+}
+</script>
+</body>
+</html>

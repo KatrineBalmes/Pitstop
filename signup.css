@@ -1,0 +1,224 @@
+:root {
+    --bg: #0f1724;
+    --accent: #0d054f;
+    --text: #cf0000;
+    --muted: #cbd5e1;
+    --radius: 12px;
+    --ff: Inter, system-ui, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--ff);
+    background-image: url('user_login background.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: white;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* === TOPBAR === */
+.topbar {
+    width: 100%;
+    padding: 0.8rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-image: url('topbar_background.png');
+    background-size: cover;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    height: 60px;
+}
+
+.logo {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--text);
+}
+
+.topbar nav a {
+    margin-left: 20px;
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+/* === MAIN === */
+.intro-section {
+    width: 100%;
+    min-height: 100vh;
+    padding: 80px 20px 20px 20px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding-right: 8%;
+}
+
+.signup-container {
+    background: rgba(0,0,0,0.75);
+    width: 100%;
+    max-width: 340px;
+    padding: 1.8rem 1.8rem;
+    border-radius: var(--radius);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+}
+
+.signup-container h2 {
+    text-align: center;
+    color: var(--text);
+    margin-bottom: 1.2rem;
+    font-size: 1.5rem;
+}
+
+/* === INPUTS === */
+.input-group {
+    margin-bottom: 12px;
+}
+
+.input-group label {
+    color: var(--muted);
+    font-size: 0.8rem;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.input-group label i {
+    margin-right: 5px;
+    font-size: 0.75rem;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 0.65rem 0.8rem;
+    border-radius: var(--radius);
+    border: 1px solid #444;
+    background-color: rgba(255,255,255,0.14);
+    color: white;
+    font-size: 0.85rem;
+}
+
+.input-group input::placeholder {
+    font-size: 0.8rem;
+}
+
+.input-group input:focus {
+    border-color: var(--text);
+    background-color: rgba(255,255,255,0.18);
+    outline: none;
+}
+
+/* === ERROR MESSAGE === */
+.error-text {
+    color: #ff4d4d;
+    font-size: 0.75rem;
+    min-height: 16px;
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+/* === BUTTON === */
+.signup-btn {
+    width: 100%;
+    padding: 0.7rem;
+    background: var(--text);
+    color: white;
+    border-radius: var(--radius);
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    margin-top: 3px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.signup-btn:hover {
+    background: #ff2a2a;
+    transform: translateY(-1px);
+}
+
+/* === Login Link === */
+.login-text {
+    margin-top: 0.8rem;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.8rem;
+}
+
+.login-text a {
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.login-text a:hover {
+    text-decoration: underline;
+}
+
+/* === RESPONSIVE === */
+@media (max-height: 750px) {
+    .signup-container {
+        max-width: 320px;
+        padding: 1.5rem 1.5rem;
+    }
+    
+    .signup-container h2 {
+        font-size: 1.3rem;
+        margin-bottom: 1rem;
+    }
+    
+    .input-group {
+        margin-bottom: 10px;
+    }
+    
+    .input-group input {
+        padding: 0.55rem 0.7rem;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .intro-section {
+        justify-content: center;
+        padding-right: 20px;
+    }
+    
+    .signup-container {
+        max-width: 360px;
+    }
+}
+
+@media (max-width: 480px) {
+    .topbar {
+        padding: 0.8rem 1rem;
+    }
+    
+    .logo {
+        font-size: 1rem;
+    }
+    
+    .topbar nav a {
+        margin-left: 12px;
+        font-size: 0.85rem;
+    }
+    
+    .intro-section {
+        padding: 70px 15px 15px 15px;
+    }
+    
+    .signup-container {
+        max-width: 100%;
+        padding: 1.5rem 1.3rem;
+    }
+}

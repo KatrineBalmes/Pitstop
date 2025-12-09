@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Sign Up - Pitstop</title>
+<link rel="stylesheet" href="signup.css" />
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<header class="topbar">
+    <div class="logo">Pitstop</div>
+    <nav>
+        <a href="user_login.html">Login</a>
+        <a href="#contact">Contact</a>
+    </nav>
+</header>
+
+<main class="intro-section">
+    <div class="signup-container">
+        <h2>Create Account</h2>
+
+        <form class="signup-form" id="signupForm">
+
+            <!-- Full Name -->
+            <div class="input-group">
+                <label><i class="fas fa-user"></i> Full Name</label>
+                <input type="text" id="fullname" placeholder="Enter your name" required>
+            </div>
+
+            <!-- Email -->
+            <div class="input-group">
+                <label><i class="fas fa-envelope"></i> Email</label>
+                <input type="email" id="email" placeholder="example@gmail.com" required>
+            </div>
+
+            <!-- Contact Number -->
+            <div class="input-group">
+                <label><i class="fas fa-phone"></i> Contact Number</label>
+                <input type="tel" id="contact" maxlength="11" placeholder="09xxxxxxxxx" required>
+            </div>
+
+            <!-- Password -->
+            <div class="input-group">
+                <label><i class="fas fa-lock"></i> Password</label>
+                <input type="password" id="password" placeholder="Create a strong password" required>
+            </div>
+
+            <!-- Confirm Password -->
+            <div class="input-group">
+                <label><i class="fas fa-lock"></i> Confirm Password</label>
+                <input type="password" id="confirmPassword" placeholder="Re-enter password" required>
+            </div>
+
+            <!-- Error Display -->
+            <p id="errorMessage" class="error-text"></p>
+
+            <button type="submit" class="signup-btn">Sign Up</button>
+        </form>
+
+        <p class="login-text">
+            Already have an account? <a href="user_login.html">Login here</a>
+        </p>
+    </div>
+</main>
+
+<script>
+// ✓ Allow numbers only in contact field
+document.getElementById('contact').addEventListener('input', function () {
+    this.value = this.value.replace(/[^0-9]/g, "");
+});
+
+const signupForm = document.getElementById('signupForm');
+const errorMessage = document.getElementById('errorMessage');
+
+signupForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    errorMessage.textContent = "";
+
+    const fullname = document.getElementById('fullname').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const contact = document.getElementById('contact').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const confirmPassword = document.getElementById('confirmPassword').value.trim();
+
+    // Validation
+    if(!fullname || !email || !contact || !password) {
+        errorMessage.textContent = "All fields are required.";
+        return;
+    }
+
+    // ✓ Contact number must be exactly 11 digits
+    if(!/^[0-9]{11}$/.test(contact)){
+        errorMessage.textContent = "Contact number must be exactly 11 digits.";
+        return;
+    }
+
+    // ✓ Email must end with @gmail.com
+    if(!email.endsWith("@gmail.com")){
+        errorMessage.textContent = "Email must end with @gmail.com";
+        return;
+    }
+
+    // ✓ Password must contain at least 1 uppercase OR 1 number OR 1 special character
+    const strongPass = /^(?=.*[A-Z]|.*\d|.*[!@#$%^&*]).{8,}$/;
+    if(!strongPass.test(password)){
+        errorMessage.textContent =
+            "Password must be 8+ characters and contain at least one: uppercase, number, or special character.";
+        return;
+    }
+
+    // ✓ Confirm password
+    if(password !== confirmPassword){
+        errorMessage.textContent = "Passwords do not match.";
+        return;
+    }
+
+    // Get existing users or create empty array
+    let users = [];
+    try {
+        const stored = localStorage.getItem('users');
+        if(stored) {
+            users = JSON.parse(stored);
+        }
+    } catch(e) {
+        console.error('Error reading users from localStorage:', e);
+        users = [];
+    }
+
+    // ✓ Prevent duplicate email
+    if(users.find(user => user.email === email)){
+        errorMessage.textContent = "Email already registered!";
+        return;
+    }
+
+    // ✓ Save user
+    const newUser = { 
+        fullname: fullname, 
+        email: email, 
+        contact: contact, 
+        password: password 
+    };
+    
+    users.push(newUser);
+    
+    try {
+        localStorage.setItem('users', JSON.stringify(users));
+        console.log('User saved successfully:', newUser);
+        console.log('All users:', users);
+        
+        alert("Account created successfully! You can now login.");
+        window.location.href = "user_login.html";
+    } catch(e) {
+        console.error('Error saving to localStorage:', e);
+        errorMessage.textContent = "Error saving account. Please try again.";
+    }
+});
+
+// Debug: Show stored users on page load
+window.addEventListener('load', function() {
+    const stored = localStorage.getItem('users');
+    console.log('Stored users on page load:', stored);
+});
+</script>
+
+</body>
+</html>
