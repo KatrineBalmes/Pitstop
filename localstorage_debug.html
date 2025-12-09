@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pitstop - localStorage Debug Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .users-table th,
+        .users-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .users-table th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .users-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .no-users {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-style: italic;
+        }
+        
+        .add-user-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .status {
+            padding: 8px 16px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        pre {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        
+        .actions {
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Pitstop localStorage Debug Tool</h1>
+        <p class="subtitle">Manage and debug user accounts stored in browser localStorage</p>
+        
+        <!-- Status Messages -->
+        <div id="statusMessages"></div>
+        
+        <!-- Current Storage Status -->
+        <div class="section">
+            <h2>📊 Storage Status</h2>
+            <div id="storageStatus">Checking...</div>
+        </div>
+        
+        <!-- Users List -->
+        <div class="section">
+            <h2>👥 Registered Users</h2>
+            <button class="btn btn-primary" onclick="loadUsers()">🔄 Refresh List</button>
+            <button class="btn btn-danger" onclick="clearAllUsers()">🗑️ Clear All Users</button>
+            <button class="btn btn-success" onclick="exportUsers()">📥 Export Users</button>
+            
+            <div id="usersContainer">
+                <p class="no-users">Loading...</p>
+            </div>
+        </div>
+        
+        <!-- Add Test User -->
+        <div class="section">
+            <h2>➕ Add Test User</h2>
+            <form class="add-user-form" id="addUserForm">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="newFullname" placeholder="Juan Dela Cruz" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="newEmail" placeholder="juan@gmail.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Contact Number</label>
+                    <input type="tel" id="newContact" placeholder="09123456789" maxlength="11" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="text" id="newPassword" placeholder="Password123" required>
+                </div>
+                <div class="form-group full-width actions">
+                    <button type="submit" class="btn btn-success">Add User</button>
+                    <button type="button" class="btn btn-primary" onclick="addSampleUsers()">Add Sample Users</button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Raw Data Viewer -->
+        <div class="section">
+            <h2>📄 Raw localStorage Data</h2>
+            <button class="btn btn-primary" onclick="showRawData()">Show Raw Data</button>
+            <pre id="rawData">Click "Show Raw Data" to view</pre>
+        </div>
+        
+        <!-- Quick Links -->
+        <div class="section">
+            <h2>🔗 Quick Links</h2>
+            <a href="signup.html" class="btn btn-primary">Go to Signup Page</a>
+            <a href="user_login.html" class="btn btn-primary">Go to Login Page</a>
+            <a href="ordering.html" class="btn btn-primary">Go to Ordering Page</a>
+        </div>
+    </div>
+
+    <script>
+        function showStatus(message, type = 'info') {
+            const container = document.getElementById('statusMessages');
+            const statusDiv = document.createElement('div');
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+            container.appendChild(statusDiv);
+            
+            setTimeout(() => {
+                statusDiv.remove();
+            }, 5000);
+        }
+        
+        function checkStorageStatus() {
+            const statusDiv = document.getElementById('storageStatus');
+            
+            try {
+                localStorage.setItem('test', 'test');
+                localStorage.removeItem('test');
+                
+                const users = JSON.parse(localStorage.getItem('users') || '[]');
+                const loggedInUser = localStorage.getItem('loggedInUser');
+                
+                statusDiv.innerHTML = `
+                    <div style="padding:10px;background:white;border-radius:6px;">
+                        <p><strong>✅ localStorage is working</strong></p>
+                        <p>📦 Registered users: <strong>${users.length}</strong></p>
+                        <p>👤 Logged in user: <strong>${loggedInUser ? 'Yes' : 'No'}</strong></p>
+                    </div>
+                `;
+            } catch(e) {
+                statusDiv.innerHTML = `
+                    <div style="padding:10px;background:#f8d7da;border-radius:6px;color:#721c24;">
+                        <p><strong>❌ localStorage Error:</strong> ${e.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function loadUsers() {
+            const container = document.getElementById('usersContainer');
+            
+            try {
+                const users = JSON.parse(localStorage.getItem('users') || '[]');
+                
+                if(users.length === 0) {
+                    container.innerHTML = '<p class="no-users">No users registered yet</p>';
+                    return;
+                }
+                
+                let tableHTML = `
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Full Name</th>
+                                <th>Email</th>
+                                <th>Contact</th>
+                                <th>Password</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                users.forEach((user, index) => {
+                    tableHTML += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${user.fullname || 'N/A'}</td>
+                            <td>${user.email}</td>
+                            <td>${user.contact || 'N/A'}</td>
+                            <td>${user.password}</td>
+                            <td>
+                                <button class="btn btn-danger" style="padding:5px 10px;font-size:12px;" onclick="deleteUser('${user.email}')">Delete</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                tableHTML += `
+                        </tbody>
+                    </table>
+                `;
+                
+                container.innerHTML = tableHTML;
+                checkStorageStatus();
+                
+            } catch(e) {
+                container.innerHTML = `<p class="no-users" style="color:red;">Error: ${e.message}</p>`;
+            }
+        }
+        
+        function deleteUser(email) {
+            if(!confirm(`Delete user: ${email}?`)) return;
+            
+            try {
+                const users = JSON.parse(localStorage.getItem('users') || '[]');
+                const filtered = users.filter(u => u.email !== email);
+                localStorage.setItem('users', JSON.stringify(filtered));
+                
+                showStatus(`User ${email} deleted successfully`, 'success');
+                loadUsers();
+            } catch(e) {
+                showStatus(`Error: ${e.message}`, 'error');
+            }
+        }
+        
+        function clearAllUsers() {
+            if(!confirm('Are you sure you want to delete ALL users? This cannot be undone!')) return;
+            
+            try {
+                localStorage.removeItem('users');
+                localStorage.removeItem('loggedInUser');
+                
+                showStatus('All users cleared successfully', 'success');
+                loadUsers();
+            } catch(e) {
+                showStatus(`Error: ${e.message}`, 'error');
+            }
+        }
+        
+        document.getElementById('addUserForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const fullname = document.getElementById('newFullname').value.trim();
+            const email = document.getElementById('newEmail').value.trim();
+            const contact = document.getElementById('newContact').value.trim();
+            const password = document.getElementById('newPassword').value.trim();
+            
+            if(!fullname || !email || !contact || !password) {
+                showStatus('All fields are required', 'error');
+                return;
+            }
+            
+            if(!email.includes('@gmail.com')) {
+                showStatus('Email must be a Gmail address', 'error');
+                return;
+            }
+            
+            if(contact.length !== 11) {
+                showStatus('Contact must be 11 digits', 'error');
+                return;
+            }
+            
+            try {
+                const users = JSON.parse(localStorage.getItem('users') || '[]');
+                
+                // Check if email already exists
+                if(users.find(u => u.email === email)) {
+                    showStatus('Email already exists', 'error');
+                    return;
+                }
+                
+                users.push({ fullname, email, contact, password });
+                localStorage.setItem('users', JSON.stringify(users));
+                
+                showStatus(`User ${fullname} added successfully!`, 'success');
+                this.reset();
+                loadUsers();
+            } catch(e) {
+                showStatus(`Error: ${e.message}`, 'error');
+            }
+        });
+        
+        function addSampleUsers() {
+            const samples = [
+                { fullname: 'Juan Dela Cruz', email: 'juan@gmail.com', contact: '09123456789', password: 'Password123' },
+                { fullname: 'Maria Santos', email: 'maria@gmail.com', contact: '09987654321', password: 'Maria2024' },
+                { fullname: 'Pedro Penduko', email: 'pedro@gmail.com', contact: '09111222333', password: 'Pedro@123' }
+            ];
+            
+            try {
+                const users = JSON.parse(localStorage.getItem('users') || '[]');
+                let added = 0;
+                
+                samples.forEach(sample => {
+                    if(!users.find(u => u.email === sample.email)) {
+                        users.push(sample);
+                        added++;
+                    }
+                });
+                
+                localStorage.setItem('users', JSON.stringify(users));
+                showStatus(`${added} sample users added`, 'success');
+                loadUsers();
+            } catch(e) {
+                showStatus(`Error: ${e.message}`, 'error');
+            }
+        }
+        
+        function showRawData() {
+            const rawDataDiv = document.getElementById('rawData');
+            
+            try {
+                const users = localStorage.getItem('users');
+                const loggedInUser = localStorage.getItem('loggedInUser');
+                
+                rawDataDiv.textContent = JSON.stringify({
+                    users: users ? JSON.parse(users) : null,
+                    loggedInUser: loggedInUser ? JSON.parse(loggedInUser) : null
+                }, null, 2);
+            } catch(e) {
+                rawDataDiv.textContent = `Error: ${e.message}`;
+            }
+        }
+        
+        function exportUsers() {
+            try {
+                const users = JSON.parse(localStorage.getItem('users') || '[]');
+                const dataStr = JSON.stringify(users, null, 2);
+                const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'pitstop_users_' + new Date().getTime() + '.json';
+                link.click();
+                
+                showStatus('Users exported successfully', 'success');
+            } catch(e) {
+                showStatus(`Error: ${e.message}`, 'error');
+            }
+        }
+        
+        // Only allow numbers in contact field
+        document.getElementById('newContact').addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+        
+        // Load users on page load
+        window.addEventListener('load', function() {
+            checkStorageStatus();
+            loadUsers();
+        });
+    </script>
+</body>
+</html>

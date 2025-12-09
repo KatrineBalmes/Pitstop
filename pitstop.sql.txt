@@ -1,0 +1,107 @@
+-- Create database
+CREATE DATABASE IF NOT EXISTS pitstop;
+USE pitstop;
+
+-- Create products table
+CREATE TABLE IF NOT EXISTS products (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    type VARCHAR(100) NOT NULL,
+    size VARCHAR(50) NOT NULL,
+    stock INT DEFAULT 0,
+    price DECIMAL(10, 2) DEFAULT 0.00,
+    image TEXT,
+    orders INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_product (name, size)
+);
+
+-- Insert sample data
+INSERT INTO products (name, type, size, stock, price, image) VALUES
+('Barbecue Nachos', 'Snacks', 'Regular', 50, 59.00, 'barbecue_nachos.jpg'),
+('Strawberry Frappucino', 'Frapuccino', 'Regular', 30, 69.00, 'strawberry_frappucino.jpg'),
+('Marshmallow Ice Cream', 'Ice Cream', 'Regular', 40, 35.00, 'marsmallow_ice cream.jpg'),
+('Corn Dog', 'Snacks', 'Regular', 25, 40.00, 'corn dog.jpg'),
+('Matcha Latte', 'Milktea', 'Regular', 35, 65.00, 'Matcha_Latte.jpg')
+ON DUPLICATE KEY UPDATE stock=VALUES(stock);
+
+-- Create orders table with updated status enum
+CREATE TABLE IF NOT EXISTS orders (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_name VARCHAR(255) NOT NULL,
+    customer_email VARCHAR(255) NOT NULL,
+    customer_contact VARCHAR(20) NOT NULL,
+    delivery_type ENUM('pickup', 'delivery') NOT NULL,
+    recipient_name VARCHAR(255),
+    delivery_address TEXT,
+    delivery_location VARCHAR(100),
+    notes TEXT,
+    payment_method ENUM('cod', 'gcash') NOT NULL,
+    receipt_image VARCHAR(255),
+    subtotal DECIMAL(10, 2) NOT NULL,
+    delivery_fee DECIMAL(10, 2) DEFAULT 0,
+    total DECIMAL(10, 2) NOT NULL,
+    delivery_person VARCHAR(255),
+    status ENUM('pending', 'processing', 'out_for_delivery', 'ready_for_pickup', 'already_picked_up', 'delivered', 'cancelled') DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Create order_items table
+CREATE TABLE IF NOT EXISTS order_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    product_name VARCHAR(255) NOT NULL,
+    product_size VARCHAR(50) NOT NULL,
+    quantity INT NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+);
+
+-- Create sales table with order_status column
+CREATE TABLE IF NOT EXISTS sales (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    customer_name VARCHAR(255) NOT NULL,
+    customer_email VARCHAR(255) NOT NULL,
+    delivery_location VARCHAR(100),
+    payment_method VARCHAR(50) NOT NULL,
+    delivery_person VARCHAR(255),
+    total DECIMAL(10, 2) NOT NULL,
+    order_status ENUM('delivered', 'ready_for_pickup', 'already_picked_up') DEFAULT 'delivered',
+    sale_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+);
+
+-- Create delivery personnel table
+CREATE TABLE IF NOT EXISTS delivery_personnel (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    contact VARCHAR(20),
+    status ENUM('active', 'inactive') DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Insert sample delivery personnel
+INSERT INTO delivery_personnel (name, contact) VALUES
+('Chester Dela Cruz', '09123456789'),
+('Keil Valida', '09234567890'),
+('Norman Ricaforte', '09345678901')
+ON DUPLICATE KEY UPDATE name=VALUES(name);
+
+-- Add updated_at column to orders if not exists
+ALTER TABLE orders 
+ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+
+-- Add delivery_person column to orders if not exists
+ALTER TABLE orders 
+ADD COLUMN IF NOT EXISTS delivery_person VARCHAR(255);
+
+-- Add order_status column to sales if not exists
+ALTER TABLE sales 
+ADD COLUMN IF NOT EXISTS order_status ENUM('delivered', 'ready_for_pickup', 'already_picked_up') DEFAULT 'delivered';
+
+-- Update orders table to include new statuses
+ALTER TABLE orders 
+MODIFY COLUMN status ENUM('pending', 'processing', 'out_for_delivery', 'ready_for_pickup', 'already_picked_up', 'delivered', 'cancelled') DEFAULT 'pending';

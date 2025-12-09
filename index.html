@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Pitstop Ordering</title>
+    <link rel="stylesheet" href="ordering.css" />
+</head>
+<body>
+    <!-- Topbar -->
+    <div class="topbar">
+        <div class="container top-inner">
+            <div class="brand">
+                <div class="logo">🍽️</div>
+                <div class="brand-text">
+                    <div class="brand-name">Pitstop</div>
+                </div>
+            </div>
+
+            <div class="top-controls">
+                <div class="right-actions">
+                    <button class="auth" id="registerBtn">Register / Sign In</button>
+                    <button class="order-now" id="openCartBtn">🛒 Order Now</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nav bar -->
+    <nav class="navbar">
+        <div class="container nav-inner">
+            <ul class="nav-links">
+                <li class="active"><a href="#menu">Home</a></li>
+                <li><a href="#" id="menuNavLink">Menu</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero / Carousel -->
+    <section class="hero container">
+        <div class="carousel" id="carousel">
+            <button class="carousel-arrow left" data-dir="left">&#10094;</button>
+
+            <div class="slides" id="slides">
+                <div class="slide" style="background-image: url('display 2.jpg')">
+                    <div class="promo">
+                        <h1></h1>
+                        <p>Delivery available only in Brgy.San Pascual.</p>
+                    </div>
+                </div>
+
+                <div class="slide" style="background-image: url('display_1.jpg')">
+                    <div class="promo">
+                        <h1>Hot & Fresh</h1>
+                        <p>Get your favorites.</p>
+                    </div>
+                </div>
+
+                <div class="slide" style="background-image: url('display_3.jpg')">
+                    <div class="promo">
+                        <h1>Enjoy your Food</h1>
+                        <p>We are happy to Serve</p>
+                    </div>
+                </div>
+            </div>
+
+            <button class="carousel-arrow right" data-dir="right">&#10095;</button>
+            <div class="carousel-dots" id="carouselDots"></div>
+        </div>
+    </section>
+
+    <!-- Featured Menu -->
+    <section id="menu" class="section container">
+        <div class="section-head">
+            <h2>Featured Menu</h2>
+            <a class="view-all" href="#menu">View All</a>
+        </div>
+
+        <div class="cards" id="menuCards">
+            <!-- Cards populated dynamically -->
+        </div>
+    </section>
+
+    <!-- Cart Pane -->
+    <aside class="cart-pane" id="cartPane" aria-hidden="true">
+        <div class="cart-inner">
+            <div class="cart-head">
+                <h3>Your Order</h3>
+                <button class="close-cart" id="closeCartBtn">✕</button>
+            </div>
+
+            <div id="cartList" class="cart-list">
+                <div class="muted">Your cart is empty.</div>
+            </div>
+
+            <div class="cart-footer">
+                <div class="total">
+                    <span>Subtotal</span>
+                    <strong id="subtotal">₱0.00</strong>
+                </div>
+                <button id="checkoutBtn" class="primary-btn">Checkout</button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Menu Page -->
+    <section id="menuPage" class="menu-section container" style="display:none;">
+        <div class="menu-wrapper">
+            <aside class="menu-categories">
+                <h3>Categories</h3>
+                <ul id="menuCategoryList">
+                    <!-- Categories populated dynamically -->
+                </ul>
+            </aside>
+
+            <div class="menu-items-area">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                    <h2 id="menuCategoryTitle" style="margin:0;">Menu Items</h2>
+                    <input type="text" id="menuSearchBar" placeholder="🔍 Search menu..." 
+                        style="padding:10px 14px;border-radius:8px;border:1px solid rgba(0,0,0,0.15);width:300px;max-width:100%;">
+                </div>
+                <div id="menuItemsGrid" class="menu-grid">
+                    <!-- Items populated dynamically -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Login Prompt Modal -->
+    <div id="loginPromptModal" class="checkout-modal" style="display:none;">
+        <div class="modal-content" style="max-width:400px;">
+            <div class="modal-header">
+                <h2>Login Required</h2>
+                <button class="close-modal" onclick="closeLoginPrompt()">✕</button>
+            </div>
+            <div class="modal-body">
+                <p style="text-align:center;font-size:16px;line-height:1.6;color:#666;">
+                    Please login first to place an order.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeLoginPrompt()">Cancel</button>
+                <button class="btn-confirm" onclick="redirectToLogin()">Login</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="site-footer container">
+        <div>©Pitstop </div>
+    </footer>
+
+    <script>
+        const API_URL = 'http://localhost/ordering';
+
+        /* ---------- CAROUSEL ---------- */
+        const slidesEl = document.getElementById('slides');
+        const dotsEl = document.getElementById('carouselDots');
+        const slideCount = slidesEl.children.length;
+        let currentSlide = 0, slideWidth = 0, autoplayInterval = null;
+
+        function setupDots(){
+            dotsEl.innerHTML='';
+            for(let i=0;i<slideCount;i++){
+                const btn = document.createElement('button');
+                btn.dataset.index=i;
+                if(i===0) btn.classList.add('active');
+                btn.addEventListener('click', ()=>{ goToSlide(i); resetAutoplay(); });
+                dotsEl.appendChild(btn);
+            }
+        }
+
+        function updateSlidePosition(){
+            slideWidth=slidesEl.clientWidth;
+            slidesEl.style.transform=`translateX(${-currentSlide*slideWidth}px)`;
+            dotsEl.querySelectorAll('button').forEach((b,i)=>b.classList.toggle('active',i===currentSlide));
+        }
+
+        function goToSlide(i){
+            currentSlide=(i+slideCount)%slideCount;
+            updateSlidePosition();
+        }
+
+        document.querySelectorAll('.carousel-arrow').forEach(btn=>{
+            btn.addEventListener('click', ()=>{
+                goToSlide(btn.dataset.dir==='left'?currentSlide-1:currentSlide+1);
+                resetAutoplay();
+            });
+        });
+
+        function autoplay(){ autoplayInterval=setInterval(()=>goToSlide(currentSlide+1),4500); }
+        function resetAutoplay(){ clearInterval(autoplayInterval); autoplay(); }
+
+        let startX=0,isDragging=false;
+        slidesEl.addEventListener('pointerdown', e=>{ isDragging=true; startX=e.clientX; slidesEl.style.transition='none'; });
+        slidesEl.addEventListener('pointermove', e=>{ if(!isDragging) return; const dx=e.clientX-startX; slidesEl.style.transform=`translateX(${-currentSlide*slidesEl.clientWidth+dx}px)`; });
+        slidesEl.addEventListener('pointerup', e=>{ 
+            if(!isDragging) return; 
+            isDragging=false; slidesEl.style.transition=''; 
+            const dx=e.clientX-startX; 
+            if(dx>60) goToSlide(currentSlide-1); 
+            else if(dx<-60) goToSlide(currentSlide+1); 
+            else updateSlidePosition(); 
+            resetAutoplay(); 
+        });
+        slidesEl.addEventListener('pointerleave', ()=>{ if(!isDragging) return; isDragging=false; slidesEl.style.transition=''; updateSlidePosition(); resetAutoplay(); });
+        window.addEventListener('resize', updateSlidePosition);
+        setupDots(); autoplay(); updateSlidePosition();
+
+        /* ---------- MENU & CART ---------- */
+        let MENU=[], cart={};
+
+        async function fetchMenu(){
+            try {
+                const res = await fetch(`${API_URL}/products_get.php`);
+                
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                
+                const data = await res.json();
+                
+                if (!Array.isArray(data)) {
+                    console.error('Expected array but got:', data);
+                    return;
+                }
+                
+                MENU = data;
+                console.log('Loaded products:', MENU.length);
+                
+                renderFeaturedMenu();
+                renderMenuCategories();
+                
+            } catch (err) {
+                console.error('fetchMenu error:', err);
+                alert('Failed to load menu. Please check if the server is running.');
+            }
+        }
+
+        const menuCards=document.getElementById('menuCards');
+
+        function renderFeaturedMenu(){
+            menuCards.innerHTML='';
+            
+            if (MENU.length === 0) {
+                menuCards.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:#999;">No products available</p>';
+                return;
+            }
+            
+            // Filter out products with 0 stock first, then show random 10
+            const availableProducts = MENU.filter(item => item.stock > 0);
+            
+            if(availableProducts.length === 0) {
+                menuCards.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:#999;">No products available at the moment. Please check back later!</p>';
+                return;
+            }
+            
+            const randomProducts = availableProducts.slice(0, 10);
+            displayFeaturedProducts(randomProducts);
+        }
+
+        function displayFeaturedProducts(products) {
+            menuCards.innerHTML = '';
+            
+            // Filter out products with 0 stock
+            const availableProducts = products.filter(item => item.stock > 0);
+            
+            if(availableProducts.length === 0) {
+                menuCards.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:#999;">No products available at the moment</p>';
+                return;
+            }
+            
+            availableProducts.forEach(item => {
+                const c = document.createElement('div'); 
+                c.className = 'card';
+                
+                let imageSrc = 'placeholder.png';
+                if (item.image) {
+                    if (item.image.startsWith('uploads/')) {
+                        imageSrc = `${API_URL}/${item.image}`;
+                    } else {
+                        imageSrc = item.image;
+                    }
+                }
+                
+                c.innerHTML = `
+                    <div class="card-img">
+                        <img src="${imageSrc}" alt="${item.name}" onerror="this.src='placeholder.png'">
+                    </div>
+                    <h3>${item.name}</h3>
+                    <p>₱${parseFloat(item.price).toFixed(2)}</p>
+                `;
+                
+                c.addEventListener('click', () => {
+                    showMenuPage();
+                    setActiveNav('Menu');
+                });
+                
+                menuCards.appendChild(c);
+            });
+        }
+
+        /* Cart UI */
+        const cartPane=document.getElementById('cartPane');
+        const cartList=document.getElementById('cartList');
+        const subtotalEl=document.getElementById('subtotal');
+
+        function updateCartUI(){
+            cartList.innerHTML='';
+            const keys=Object.keys(cart);
+            if(keys.length===0){ 
+                cartList.innerHTML='<div class="muted">Your cart is empty.</div>'; 
+                subtotalEl.textContent='₱0.00'; 
+                return; 
+            }
+            let subtotal=0;
+            keys.forEach(k=>{
+                const it=cart[k]; 
+                subtotal+=parseFloat(it.price)*it.qty;
+                const row=document.createElement('div'); 
+                row.className='cart-row';
+                row.innerHTML=`
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+                        <div>
+                            <div style="font-weight:600">${it.name} (${it.size})</div>
+                            <div class="muted" style="font-size:13px">₱${parseFloat(it.price).toFixed(2)} × ${it.qty}</div>
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:6px;">
+                            <button class="small" data-op="inc" data-id="${k}">+</button>
+                            <button class="small" data-op="dec" data-id="${k}">−</button>
+                        </div>
+                    </div>
+                `;
+                cartList.appendChild(row);
+            });
+            subtotalEl.textContent=`₱${subtotal.toFixed(2)}`;
+            cartList.querySelectorAll('button[data-op]').forEach(b=>{
+                b.addEventListener('click', ()=>{
+                    const id=b.dataset.id, op=b.dataset.op;
+                    if(op==='inc') cart[id].qty+=1;
+                    if(op==='dec'){ cart[id].qty-=1; if(cart[id].qty<=0) delete cart[id]; }
+                    updateCartUI();
+                });
+            });
+        }
+
+        function addToCart(uniqueId){
+            // Show login prompt immediately when trying to add to cart
+            showLoginPrompt();
+        }
+
+        document.getElementById('openCartBtn').addEventListener('click', ()=>{
+            showLoginPrompt();
+        });
+        
+        document.getElementById('closeCartBtn').addEventListener('click', closeCart);
+        document.getElementById('checkoutBtn').addEventListener('click', showLoginPrompt);
+        document.getElementById('registerBtn').addEventListener('click', ()=>{
+            window.location.href = 'user_login.html';
+        });
+
+        function openCart(){ 
+            cartPane.classList.add('open'); 
+            cartPane.setAttribute('aria-hidden','false'); 
+        }
+        
+        function closeCart(){ 
+            cartPane.classList.remove('open'); 
+            cartPane.setAttribute('aria-hidden','true'); 
+        }
+
+        /* ---------- LOGIN PROMPT MODAL ---------- */
+        function showLoginPrompt(){
+            document.getElementById('loginPromptModal').style.display = 'flex';
+        }
+
+        function closeLoginPrompt(){
+            document.getElementById('loginPromptModal').style.display = 'none';
+        }
+
+        function redirectToLogin(){
+            window.location.href = 'user_login.html';
+        }
+
+        /* ---------- MENU PAGE WITH SEARCH ---------- */
+        const menuPage=document.getElementById('menuPage');
+        const menuNavLink=document.getElementById('menuNavLink');
+        const menuCategoryList=document.getElementById('menuCategoryList');
+        const menuItemsGrid=document.getElementById('menuItemsGrid');
+        const menuSearchBar=document.getElementById('menuSearchBar');
+
+        menuNavLink.addEventListener('click', e=>{
+            e.preventDefault(); 
+            showMenuPage(); 
+            setActiveNav('Menu');
+            if (MENU.length > 0) {
+                const firstCategory = [...new Set(MENU.map(i=>i.type))][0];
+                if (firstCategory) renderMenuItems(firstCategory);
+            }
+        });
+
+        // Menu search functionality
+        menuSearchBar.addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase();
+            if(query === '') {
+                const activeCategory = document.querySelector('#menuCategoryList li.active');
+                if(activeCategory) {
+                    renderMenuItems(activeCategory.textContent);
+                }
+                return;
+            }
+            
+            // Filter by search query AND stock availability
+            const filtered = MENU.filter(item => 
+                (item.name.toLowerCase().includes(query) ||
+                item.type.toLowerCase().includes(query)) &&
+                item.stock > 0  // Only show items with stock
+            );
+            
+            document.getElementById('menuCategoryTitle').textContent = `Search Results (${filtered.length})`;
+            menuItemsGrid.innerHTML = '';
+            
+            if(filtered.length === 0) {
+                menuItemsGrid.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:#999;">No available products found</p>';
+                return;
+            }
+            
+            filtered.forEach(item => {
+                const c = document.createElement('div');
+                c.className = 'card';
+                
+                let imageSrc = 'placeholder.png';
+                if (item.image) {
+                    imageSrc = item.image.startsWith('uploads/') ? `${API_URL}/${item.image}` : item.image;
+                }
+                
+                const uniqueId = `${item.name}_${item.size}`;
+                
+                c.innerHTML = `
+                    <div class="thumb" style="background-image:url('${imageSrc}')"></div>
+                    <h3>${item.name}</h3>
+                    <p class="muted">${item.size} - ₱${parseFloat(item.price).toFixed(2)}</p>
+                    <button class="add" data-id="${uniqueId}">Add to Cart</button>
+                `;
+                menuItemsGrid.appendChild(c);
+            });
+            
+            attachAddButtons(menuItemsGrid);
+        });
+
+        const homeNavLink=document.querySelector('.nav-links li:first-child a');
+        homeNavLink.addEventListener('click', e=>{
+            e.preventDefault(); 
+            document.querySelector('.hero').style.display='block';
+            document.querySelector('#menu').style.display='block';
+            menuPage.style.display='none';
+            setActiveNav('Home');
+        });
+
+        function showMenuPage(){
+            document.querySelector('.hero').style.display='none';
+            document.querySelector('#menu').style.display='none';
+            menuPage.style.display='block';
+        }
+
+        function setActiveNav(linkText){ 
+            document.querySelectorAll('.nav-links li').forEach(li=>{ 
+                li.classList.remove('active'); 
+                if(li.textContent.trim()===linkText) li.classList.add('active'); 
+            }); 
+        }
+
+        function renderMenuCategories(){
+            menuCategoryList.innerHTML='';
+            const uniqueCats=[...new Set(MENU.map(i=>i.type))];
+            
+            if (uniqueCats.length === 0) {
+                menuCategoryList.innerHTML = '<li style="color:#999;">No categories</li>';
+                return;
+            }
+            
+            uniqueCats.forEach(c=>{
+                const li=document.createElement('li'); 
+                li.textContent=c;
+                li.addEventListener('click', ()=> {
+                    menuCategoryList.querySelectorAll('li').forEach(item => item.classList.remove('active'));
+                    li.classList.add('active');
+                    menuSearchBar.value = '';
+                    renderMenuItems(c);
+                });
+                menuCategoryList.appendChild(li);
+            });
+            
+            if (menuCategoryList.firstChild) {
+                menuCategoryList.firstChild.classList.add('active');
+            }
+        }
+
+        function renderMenuItems(category){
+            const menuCategoryTitle = document.getElementById('menuCategoryTitle');
+            if (menuCategoryTitle) {
+                menuCategoryTitle.textContent = category;
+            }
+            
+            menuItemsGrid.innerHTML='';
+            
+            // Filter by category AND stock availability
+            const items = MENU.filter(i => i.type === category && i.stock > 0);
+            
+            if (items.length === 0) {
+                menuItemsGrid.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:#999;">No items available in this category at the moment</p>';
+                return;
+            }
+            
+            items.forEach(item=>{
+                const c=document.createElement('div'); 
+                c.className='card';
+                
+                let imageSrc = 'placeholder.png';
+                if (item.image) {
+                    if (item.image.startsWith('uploads/')) {
+                        imageSrc = `${API_URL}/${item.image}`;
+                    } else {
+                        imageSrc = item.image;
+                    }
+                }
+                
+                const uniqueId = `${item.name}_${item.size}`;
+                
+                c.innerHTML=`
+                    <div class="thumb" style="background-image:url('${imageSrc}')"></div>
+                    <h3>${item.name}</h3>
+                    <p class="muted">${item.size} - ₱${parseFloat(item.price).toFixed(2)}</p>
+                    <button class="add" data-id="${uniqueId}">Add to Cart</button>
+                `;
+                menuItemsGrid.appendChild(c);
+            });
+            
+            attachAddButtons(menuItemsGrid);
+        }
+
+        function attachAddButtons(grid){
+            grid.querySelectorAll('.add').forEach(btn=>{
+                btn.addEventListener('click', (e)=>{
+                    e.stopPropagation();
+                    addToCart(btn.dataset.id);
+                });
+            });
+        }
+
+        /* ---------- INIT ---------- */
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchMenu();
+            console.log('Public menu system loaded. API URL:', API_URL);
+        });
+    </script>
+</body>
+</html>
