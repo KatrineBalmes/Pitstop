@@ -460,7 +460,7 @@ Update colors in CSS files:
 
 ### For Administrators
 
-#### 1. Admin Login
+#### 1. Owner login
 1. Open `admin.html`
 2. Enter admin credentials
 3. Access admin dashboard
@@ -570,8 +570,8 @@ Pitstop/
 │   └── user.css                     # User auth styles
 │
 ├── 👨‍💼 Admin Panel
-│   ├── admin.html                   # Admin login
-│   ├── admin.js                     # Admin login logic
+│   ├── admin.html                   # Owner login
+│   ├── admin.js                     # Owner login logic
 │   ├── admin_interface.html         # Admin dashboard
 │   ├── admin_interface.css          # Admin styles
 │   └── admin_interface.js           # Admin functionality
@@ -971,6 +971,6 @@ Landing Page → Registration → Login → Browse Menu → Add to Cart → Chec
 
 ### Admin Dashboard Flow
 ```
-Admin Login → Dashboard → Manage Products → Process Orders → View Analytics
+Owner login → Dashboard → Manage Products → Process Orders → View Analytics
 ```
 
