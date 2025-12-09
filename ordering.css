@@ -45,6 +45,8 @@ html, body{
     align-items: center;
     justify-content: space-between;
     padding: 12px 0;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .brand{
@@ -72,6 +74,7 @@ html, body{
     display: flex;
     align-items: center;
     gap: 12px;
+    flex-wrap: wrap;
 }
 
 .address-btn{
@@ -94,6 +97,7 @@ html, body{
     display: flex;
     gap: 10px;
     align-items: center;
+    flex-wrap: wrap;
 }
 
 .auth{
@@ -103,9 +107,9 @@ html, body{
     padding: 8px 12px;
     border-radius: 8px;
     cursor: pointer;
+    white-space: nowrap;
 }
 
-/* Updated logout button styling - matches order now button */
 .btnLogout{
     background: white;
     color: var(--red);
@@ -115,6 +119,7 @@ html, body{
     cursor: pointer;
     font-weight: 700;
     transition: all 0.2s ease;
+    white-space: nowrap;
 }
 
 .btnLogout:hover {
@@ -136,6 +141,7 @@ html, body{
     cursor: pointer;
     font-weight: 700;
     transition: all 0.2s ease;
+    white-space: nowrap;
 }
 
 .order-now:hover {
@@ -147,6 +153,7 @@ html, body{
 .order-now:active {
     transform: translateY(0);
 }
+
 /* Navbar */
 .navbar{
     background: white;
@@ -158,6 +165,8 @@ html, body{
     align-items: center;
     justify-content: space-between;
     padding: 12px 0;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .nav-links{
@@ -166,6 +175,7 @@ html, body{
     gap: 26px;
     margin: 0;
     padding: 0;
+    flex-wrap: wrap;
 }
 
 .nav-links a{
@@ -174,6 +184,7 @@ html, body{
     padding: 10px 6px;
     border-radius: 6px;
     transition: 0.2s;
+    white-space: nowrap;
 }
 
 .nav-links a:hover{
@@ -222,6 +233,7 @@ html, body{
     color: #fff;
     text-shadow: 0 4px 14px rgba(0,0,0,0.35);
     max-width: 720px;
+    padding: 0 20px;
 }
 
 .slide .promo h1{
@@ -295,6 +307,8 @@ html, body{
     align-items: center;
     justify-content: space-between;
     margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .cards{
@@ -303,7 +317,6 @@ html, body{
     gap: 16px;
 }
 
-/* Card styling - Fixed dimensions */
 .card{
     background: var(--card);
     padding: 16px;
@@ -313,7 +326,7 @@ html, body{
     flex-direction: column;
     gap: 12px;
 }
-/* Featured menu card image - REPLACE THIS SECTION IN ordering.css */
+
 .card .card-img {
     width: 100%;
     height: 200px;
@@ -333,7 +346,6 @@ html, body{
     padding: 8px;
 }
 
-/* Menu page thumbnails - REPLACE THIS SECTION IN ordering.css */
 .card .thumb {
     width: 100%;
     height: 180px;
@@ -344,7 +356,6 @@ html, body{
     background-color: #f5f5f5;
 }
 
-/* Menu grid thumbnails - for menu page items */
 .menu-grid .card .thumb {
     width: 100%;
     height: 180px;
@@ -380,6 +391,7 @@ html, body{
     padding: 8px 10px;
     border-radius: 8px;
     cursor: pointer;
+    width: 100%;
 }
 
 /* Cart pane */
@@ -468,6 +480,8 @@ html, body{
     padding: 12px;
     background: var(--card);
     border-radius: var(--radius);
+    position: sticky;
+    top: 20px;
 }
 
 .menu-categories ul{
@@ -502,15 +516,6 @@ html, body{
     margin-bottom: 20px;
     padding-bottom: 10px;
     border-bottom: 3px solid var(--red);
-}
-
-.card .thumb {
-    height: 140px;
-    border-radius: 8px;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-color: #f5f5f5;
 }
 
 .small {
@@ -559,6 +564,7 @@ html, body{
     align-items: center;
     justify-content: center;
     z-index: 1000;
+    padding: 20px;
 }
 
 .modal-content {
@@ -686,6 +692,7 @@ html, body{
     display: flex;
     gap: 10px;
     justify-content: flex-end;
+    flex-wrap: wrap;
 }
 
 .btn-cancel, .btn-confirm {
@@ -720,23 +727,142 @@ html, body{
     padding: 20px;
     border-radius: 10px;
     margin: 10px 0;
+    text-align: center;
 }
 
-/* Responsive */
-@media(max-width:1000px){
-    .slide{height:280px;}
-    .carousel-arrow{width:40px;height:40px;}
-    .cart-pane{right:12px;width:300px;top:86px;}
+.gcash-qr img {
+    max-width: 100%;
+    height: auto;
 }
 
+/* RESPONSIVE BREAKPOINTS */
+
+/* Tablet and below (1024px) */
+@media(max-width:1024px){
+    .slide{
+        height:300px;
+    }
+    
+    .slide .promo h1{
+        font-size: 36px;
+    }
+    
+    .slide .promo p{
+        font-size: 16px;
+    }
+    
+    .cards{
+        grid-template-columns: repeat(auto-fill,minmax(200px,1fr));
+    }
+    
+    .menu-grid{
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    }
+}
+
+/* Tablet portrait (900px) */
+@media(max-width:900px){
+    .menu-wrapper{
+        flex-direction: column;
+    }
+    
+    .menu-categories{
+        width: 100%;
+        position: static;
+    }
+    
+    .menu-categories ul{
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .menu-categories li{
+        flex: 0 0 auto;
+    }
+    
+    .cart-pane{
+        right: 12px;
+        width: 300px;
+        top: 86px;
+    }
+}
+
+/* Mobile landscape (760px) */
 @media(max-width:760px){
-    .top-inner{flex-direction:column;align-items:flex-start;gap:10px;padding:10px 0;}
-    .nav-inner{flex-direction:column;align-items:flex-start;gap:10px;padding:10px 0;}
-    .slides{touch-action:pan-y;}
-    .slide{height:220px;}
-    .carousel-arrow{display:none;}
-    .cart-pane{position:fixed;right:12px;left:12px;bottom:12px;top:auto;height:auto;border-radius:14px;}
-    .brand-sub{display:none;}
+    .top-inner{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:10px;
+        padding:10px 0;
+    }
+    
+    .brand{
+        width: 100%;
+    }
+    
+    .top-controls{
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .right-actions{
+        width: 100%;
+        justify-content: flex-end;
+    }
+    
+    .nav-inner{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:10px;
+        padding:10px 0;
+    }
+    
+    .nav-links{
+        width: 100%;
+        justify-content: flex-start;
+        gap: 15px;
+    }
+    
+    .slides{
+        touch-action:pan-y;
+    }
+    
+    .slide{
+        height:250px;
+    }
+    
+    .slide .promo{
+        margin-left: 20px;
+    }
+    
+    .slide .promo h1{
+        font-size: 28px;
+    }
+    
+    .slide .promo p{
+        font-size: 14px;
+    }
+    
+    .carousel-arrow{
+        display:none;
+    }
+    
+    .cart-pane{
+        position:fixed;
+        right:12px;
+        left:12px;
+        bottom:12px;
+        top:auto;
+        height:auto;
+        max-height: 70vh;
+        border-radius:14px;
+        width: auto;
+    }
+    
+    .brand-sub{
+        display:none;
+    }
     
     .modal-content {
         width: 95%;
@@ -745,5 +871,228 @@ html, body{
     
     .modal-body {
         padding: 16px;
+    }
+    
+    .cards{
+        grid-template-columns: repeat(auto-fill,minmax(160px,1fr));
+        gap: 12px;
+    }
+    
+    .card .card-img{
+        height: 160px;
+    }
+    
+    .card .thumb{
+        height: 150px;
+    }
+    
+    .menu-grid{
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
+    }
+    
+    #menuSearchBar{
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+}
+
+/* Mobile portrait (480px) */
+@media(max-width:480px){
+    .container{
+        padding: 0 12px;
+    }
+    
+    .logo{
+        width: 38px;
+        height: 38px;
+        font-size: 18px;
+    }
+    
+    .brand-name{
+        font-size: 16px;
+    }
+    
+    .auth, .order-now, .btnLogout{
+        font-size: 13px;
+        padding: 6px 10px;
+    }
+    
+    .nav-links{
+        gap: 10px;
+    }
+    
+    .nav-links a{
+        font-size: 14px;
+        padding: 8px 4px;
+    }
+    
+    .hero{
+        padding: 15px 0;
+    }
+    
+    .slide{
+        height: 200px;
+    }
+    
+    .slide .promo{
+        margin-left: 15px;
+    }
+    
+    .slide .promo h1{
+        font-size: 24px;
+    }
+    
+    .slide .promo p{
+        font-size: 13px;
+    }
+    
+    .section{
+        padding: 20px 0;
+    }
+    
+    .section-head h2{
+        font-size: 20px;
+    }
+    
+    .cards{
+        grid-template-columns: repeat(auto-fill,minmax(140px,1fr));
+        gap: 10px;
+    }
+    
+    .card{
+        padding: 12px;
+        gap: 8px;
+    }
+    
+    .card .card-img{
+        height: 140px;
+    }
+    
+    .card .thumb{
+        height: 130px;
+    }
+    
+    .card h3{
+        font-size: 14px;
+    }
+    
+    .card p{
+        font-size: 13px;
+    }
+    
+    .card .add{
+        font-size: 13px;
+        padding: 6px 8px;
+    }
+    
+    .cart-pane{
+        right: 8px;
+        left: 8px;
+        bottom: 8px;
+    }
+    
+    .cart-inner{
+        height: 60vh;
+    }
+    
+    .menu-categories{
+        padding: 10px;
+    }
+    
+    .menu-categories h3{
+        font-size: 16px;
+        margin-bottom: 8px;
+    }
+    
+    .menu-categories li{
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+    
+    #menuCategoryTitle{
+        font-size: 20px;
+    }
+    
+    .menu-grid{
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .modal-header{
+        padding: 15px;
+    }
+    
+    .modal-header h2{
+        font-size: 18px;
+    }
+    
+    .modal-body{
+        padding: 12px;
+    }
+    
+    .checkout-section h3{
+        font-size: 15px;
+    }
+    
+    .form-group label{
+        font-size: 13px;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea{
+        font-size: 13px;
+        padding: 8px 10px;
+    }
+    
+    .summary-row{
+        font-size: 14px;
+    }
+    
+    .summary-row.total{
+        font-size: 16px;
+    }
+    
+    .modal-footer{
+        padding: 12px 15px;
+    }
+    
+    .btn-cancel, .btn-confirm{
+        padding: 8px 16px;
+        font-size: 13px;
+        flex: 1;
+    }
+    
+    .site-footer{
+        font-size: 13px;
+        padding: 15px 0;
+    }
+}
+
+/* Extra small mobile (360px) */
+@media(max-width:360px){
+    .cards{
+        grid-template-columns: 1fr;
+    }
+    
+    .slide{
+        height: 180px;
+    }
+    
+    .slide .promo h1{
+        font-size: 20px;
+    }
+    
+    .slide .promo p{
+        font-size: 12px;
+    }
+    
+    .nav-links{
+        gap: 8px;
+    }
+    
+    .nav-links a{
+        font-size: 13px;
     }
 }
