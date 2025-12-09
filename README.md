@@ -14,8 +14,8 @@ A complete web-based food ordering and restaurant management system featuring a 
 - [Configuration](#-configuration)
 - [Usage Guide](#-usage-guide)
 - [File Structure](#-file-structure)
-- [Database Schema](#-database-schema)
 - [API Endpoints](#-api-endpoints)
+- [Additional Guide](#-additional-guide)
 ---
 
 ## 🎯 Overview
@@ -961,75 +961,8 @@ GET /delivery_personnel_get.php
 6. **Browser Compatibility**: Optimized for modern browsers
 ---
 
-## 🙏 Acknowledgments
 
-- **Chart.js** - For beautiful data visualizations
-- **PHPMailer** - For email functionality
-- **Google Fonts** - Inter font family
-- **Community Contributors** - For suggestions and improvements
----
-
-### Frequently Asked Questions
-
-**Q: How do I reset the admin password?**
-A: Directly update the database `admin` table with a new hashed password.
-
-**Q: Can I use this for commercial purposes?**
-A: Yes, under the MIT License terms.
-
-**Q: How do I add more barangays?**
-A: Edit the `barangays` array in `ordering.js`.
-
-**Q: Where are product images stored?**
-A: In the `uploads/` directory. Ensure proper permissions.
-
-**Q: How do I backup my data?**
-A: Export the MySQL database using phpMyAdmin or mysqldump.
-
----
-
-## 🔧 Troubleshooting
-
-### Common Issues
-
-#### Issue: "Connection failed" error
-**Solution:**
-1. Check database credentials in `db.php`
-2. Ensure MySQL service is running
-3. Verify database exists
-
-#### Issue: Images not displaying
-**Solution:**
-1. Check `uploads/` folder permissions (777)
-2. Verify image paths in database
-3. Check API_URL in JavaScript files
-
-#### Issue: Orders not submitting
-**Solution:**
-1. Open browser console (F12)
-2. Check for JavaScript errors
-3. Verify API endpoints are accessible
-4. Check database connection
-
-#### Issue: Charts not loading
-**Solution:**
-1. Verify Chart.js CDN is accessible
-2. Check browser console for errors
-3. Ensure `dashboard_stats.php` returns valid data
-
----
-
-## 📈 Performance Tips
-
-1. **Optimize Images**: Compress product images before upload
-2. **Database Indexing**: Add indexes to frequently queried columns
-3. **Caching**: Implement browser caching for static assets
-4. **CDN**: Use CDN for Chart.js and other libraries
-5. **Minification**: Minify CSS and JavaScript for production
-
----
-
-## 📸 Additional Screenshots
+## 📸 Additional Guide
 
 ### Customer Interface Flow
 ```
@@ -1041,4 +974,3 @@ Landing Page → Registration → Login → Browse Menu → Add to Cart → Chec
 Admin Login → Dashboard → Manage Products → Process Orders → View Analytics
 ```
 
----
