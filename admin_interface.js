@@ -346,61 +346,90 @@ document.getElementById('addUpdateItem').addEventListener('click', async () => {
     const type = document.getElementById('productType').value;
     const size = document.getElementById('size').value;
     const stockInput = document.getElementById('stockQty').value.trim();
-    const stockToAdd = parseInt(stockInput) || 0;
-    const price = parseFloat(document.getElementById('price').value) || 0;
+    const priceInput = document.getElementById('price').value.trim();
     const imagePreview = document.getElementById('imagePreview');
     const image = imagePreview.src && !imagePreview.src.includes('placeholder.png') ? imagePreview.src : '';
 
     if(!name) {
-        alert('Item name is required.');
+        alert('❌ Item name is required.');
         return;
     }
 
-    if(price <= 0) {
-        alert('Please enter a valid price.');
+    // ✅ STRICT VALIDATION: Price must be numbers only
+    if(priceInput === '' || priceInput === '0') {
+        alert('❌ Please enter a valid price.');
         return;
     }
 
-    if(selectedProduct && stockInput !== '' && stockToAdd < 0) {
-        alert('Cannot add negative stocks');
+    // Check if price contains non-numeric characters
+    if(!/^\d+$/.test(priceInput)) {
+        alert('❌ Price must contain NUMBERS ONLY (no letters, no decimals)!');
+        document.getElementById('price').value = '';
+        document.getElementById('price').focus();
         return;
     }
 
-    if(!selectedProduct && stockToAdd < 0) {
-        alert('Initial stock cannot be negative');
+    const price = parseInt(priceInput);
+
+    // Validate price is a positive whole number
+    if(isNaN(price) || price <= 0) {
+        alert('❌ Price must be a positive whole number!');
+        document.getElementById('price').value = '';
+        document.getElementById('price').focus();
         return;
     }
 
-    try {
-        const payload = { 
-            name, 
-            type, 
-            size, 
-            stock: stockToAdd,
-            price, 
-            image 
-        };
-        
-        const res = await fetch(`${API_URL}/products_add.php`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        
-        const responseText = await res.text();
-        let jsonResponse = JSON.parse(responseText);
-        
-        if(jsonResponse && jsonResponse.status === 'ok'){
-            alert(jsonResponse.message || 'Product saved successfully!');
-            clearInputs();
-            selectedProduct = null;
-            loadProducts();
-        } else {
-            alert('Failed to save product: ' + (jsonResponse.error || 'Unknown error'));
+    // Validate price max 4 digits (9999)
+    if(price > 9999) {
+        alert('❌ Price cannot exceed ₱9,999 (4 digits maximum)!');
+        document.getElementById('price').value = '9999';
+        document.getElementById('price').focus();
+        return;
+    }
+
+    // ✅ STRICT VALIDATION: Stock must be numbers only
+    let stockToAdd = 0;
+    if(stockInput !== '') {
+        // Check if stock contains non-numeric characters
+        if(!/^\d+$/.test(stockInput)) {
+            alert('❌ Stock must contain NUMBERS ONLY (no letters and cannot be negative)!');
+            document.getElementById('stockQty').value = '';
+            document.getElementById('stockQty').focus();
+            return;
         }
-    } catch (err) {
-        console.error('Save error:', err);
-        alert('Error while saving: ' + err.message);
+
+        stockToAdd = parseInt(stockInput);
+
+        // Validate stock cannot be negative
+        if(stockToAdd < 0) {
+            alert('❌ Stock cannot be negative!');
+            return;
+        }
+
+        // Validate stock max 100
+        if(stockToAdd > 100) {
+            alert('❌ Cannot add more than 100 stock at once!');
+            document.getElementById('stockQty').value = '100';
+            document.getElementById('stockQty').focus();
+            return;
+        }
+
+        // If updating existing product, check if total stock would exceed 100
+        if(selectedProduct) {
+            const currentStock = parseInt(selectedProduct.stock) || 0;
+            const newTotalStock = currentStock + stockToAdd;
+            
+            if(newTotalStock > 100) {
+                alert(`❌ Total stock cannot exceed 100!\n\n` +
+                      `Current stock: ${currentStock}\n` +
+                      `Adding: ${stockToAdd}\n` +
+                      `Would be: ${newTotalStock}\n\n` +
+                      `Please add ${100 - currentStock} or less.`);
+                document.getElementById('stockQty').value = (100 - currentStock).toString();
+                document.getElementById('stockQty').focus();
+                return;
+            }
+        }
     }
 });
 
