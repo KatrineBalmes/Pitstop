@@ -1,5 +1,5 @@
 <?php
-// ordering/order_update.php - COMPLETE FIX
+// ordering/order_update.php - WITH STOCK RESTORATION ON CANCEL
 require_once 'db.php';
 
 try {
@@ -17,6 +17,49 @@ try {
     // Start transaction
     $conn->begin_transaction();
     
+    // ✅ GET CURRENT STATUS BEFORE UPDATING
+    $checkStatusSql = "SELECT status FROM orders WHERE id = ?";
+    $checkStmt = $conn->prepare($checkStatusSql);
+    $checkStmt->bind_param('i', $orderId);
+    $checkStmt->execute();
+    $checkResult = $checkStmt->get_result();
+    $currentOrder = $checkResult->fetch_assoc();
+    $checkStmt->close();
+    
+    if (!$currentOrder) {
+        throw new Exception('Order not found');
+    }
+    
+    $previousStatus = $currentOrder['status'];
+    
+    // ✅ RESTORE STOCK IF CANCELLING ORDER
+    if ($status === 'cancelled' && $previousStatus !== 'cancelled') {
+        error_log("🔄 Restoring stock for cancelled order #{$orderId}");
+        
+        // Get all items in this order
+        $itemsSql = "SELECT product_name, product_size, quantity FROM order_items WHERE order_id = ?";
+        $itemsStmt = $conn->prepare($itemsSql);
+        $itemsStmt->bind_param('i', $orderId);
+        $itemsStmt->execute();
+        $itemsResult = $itemsStmt->get_result();
+        
+        // Restore stock for each item
+        while ($item = $itemsResult->fetch_assoc()) {
+            $updateStockSql = "UPDATE products SET stock = stock + ? WHERE name = ? AND size = ?";
+            $stockStmt = $conn->prepare($updateStockSql);
+            $stockStmt->bind_param('iss', $item['quantity'], $item['product_name'], $item['product_size']);
+            
+            if (!$stockStmt->execute()) {
+                throw new Exception('Failed to restore stock: ' . $stockStmt->error);
+            }
+            
+            error_log("✅ Restored {$item['quantity']} units of {$item['product_name']} ({$item['product_size']})");
+            $stockStmt->close();
+        }
+        
+        $itemsStmt->close();
+    }
+    
     // Update order status and delivery person
     $updateSql = "UPDATE orders SET status = ?, delivery_person = ?, updated_at = NOW() WHERE id = ?";
     $stmt = $conn->prepare($updateSql);
@@ -31,7 +74,8 @@ try {
     // Move to SALES table so it appears in:
     // 1. Admin Sales page
     // 2. Customer Purchase History
-    if($status === 'delivered' || $status === 'already_picked_up') {
+    if(($status === 'delivered' || $status === 'already_picked_up' || $status === 'ready_for_pickup') 
+       && !in_array($previousStatus, ['delivered', 'already_picked_up', 'ready_for_pickup'])) {
         
         // Get order details
         $orderSql = "SELECT * FROM orders WHERE id = ?";
@@ -82,18 +126,28 @@ try {
     // Commit transaction
     $conn->commit();
     
+    $message = ($status === 'cancelled' && $previousStatus !== 'cancelled') 
+        ? 'Order cancelled and stock restored successfully' 
+        : 'Order updated successfully';
+    
     echo json_encode([
         'status' => 'ok',
-        'message' => 'Order updated successfully'
+        'message' => $message,
+        'stock_restored' => ($status === 'cancelled' && $previousStatus !== 'cancelled')
     ]);
     
 } catch (Exception $e) {
-    $conn->rollback();
+    if (isset($conn)) {
+        $conn->rollback();
+    }
     http_response_code(400);
     echo json_encode([
         'status' => 'error',
         'error' => $e->getMessage()
     ]);
 } finally {
-    $conn->close();
+    if (isset($conn)) {
+        $conn->close();
+    }
 }
+?>
