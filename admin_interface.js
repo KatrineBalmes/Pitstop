@@ -350,49 +350,40 @@ document.getElementById('addUpdateItem').addEventListener('click', async () => {
     const imagePreview = document.getElementById('imagePreview');
     const image = imagePreview.src && !imagePreview.src.includes('placeholder.png') ? imagePreview.src : '';
 
-    if(!name) {
+    // ---------- VALIDATE ITEM NAME ----------
+    if (!name) {
         alert('❌ Item name is required.');
         return;
     }
 
-    // ✅ STRICT VALIDATION: Price must be numbers only
-    if(priceInput === '' || priceInput === '0') {
-        alert('❌ Please enter a valid price.');
-        return;
-    }
-
-    // Check if price contains non-numeric characters
-    if(!/^\d+$/.test(priceInput)) {
-        alert('❌ Price must contain NUMBERS ONLY (no letters, no decimals)!');
+    // ---------- VALIDATE PRICE ----------
+    if (!/^\d+$/.test(priceInput)) {
+        alert('❌ Price must be a positive whole number (numbers only, no decimals)!');
         document.getElementById('price').value = '';
         document.getElementById('price').focus();
         return;
     }
 
     const price = parseInt(priceInput);
-
-    // Validate price is a positive whole number
-    if(isNaN(price) || price <= 0) {
-        alert('❌ Price must be a positive whole number!');
+    if (price <= 0) {
+        alert('❌ Price must be greater than 0!');
         document.getElementById('price').value = '';
         document.getElementById('price').focus();
         return;
     }
 
-    // Validate price max 4 digits (9999)
-    if(price > 9999) {
-        alert('❌ Price cannot exceed ₱9,999 (4 digits maximum)!');
+    if (price > 9999) {
+        alert('❌ Price cannot exceed ₱9,999!');
         document.getElementById('price').value = '9999';
         document.getElementById('price').focus();
         return;
     }
 
-    // ✅ STRICT VALIDATION: Stock must be numbers only
+    // ---------- VALIDATE STOCK ----------
     let stockToAdd = 0;
-    if(stockInput !== '') {
-        // Check if stock contains non-numeric characters
-        if(!/^\d+$/.test(stockInput)) {
-            alert('❌ Stock must contain NUMBERS ONLY (no letters and cannot be negative)!');
+    if (stockInput !== '') {
+        if (!/^\d+$/.test(stockInput)) {
+            alert('❌ Stock must be a positive whole number (no letters, no decimals)!');
             document.getElementById('stockQty').value = '';
             document.getElementById('stockQty').focus();
             return;
@@ -400,36 +391,57 @@ document.getElementById('addUpdateItem').addEventListener('click', async () => {
 
         stockToAdd = parseInt(stockInput);
 
-        // Validate stock cannot be negative
-        if(stockToAdd < 0) {
+        if (stockToAdd < 0) {
             alert('❌ Stock cannot be negative!');
             return;
         }
 
-        // Validate stock max 100
-        if(stockToAdd > 100) {
+        if (stockToAdd > 100) {
             alert('❌ Cannot add more than 100 stock at once!');
             document.getElementById('stockQty').value = '100';
             document.getElementById('stockQty').focus();
             return;
         }
 
-        // If updating existing product, check if total stock would exceed 100
-        if(selectedProduct) {
+        // Check for existing product total stock
+        if (selectedProduct) {
             const currentStock = parseInt(selectedProduct.stock) || 0;
             const newTotalStock = currentStock + stockToAdd;
-            
-            if(newTotalStock > 100) {
-                alert(`❌ Total stock cannot exceed 100!\n\n` +
-                      `Current stock: ${currentStock}\n` +
-                      `Adding: ${stockToAdd}\n` +
-                      `Would be: ${newTotalStock}\n\n` +
-                      `Please add ${100 - currentStock} or less.`);
+            if (newTotalStock > 100) {
+                alert(`❌ Total stock cannot exceed 100!\nCurrent stock: ${currentStock}\nAdding: ${stockToAdd}\nMax allowed: ${100 - currentStock}`);
                 document.getElementById('stockQty').value = (100 - currentStock).toString();
                 document.getElementById('stockQty').focus();
                 return;
             }
         }
+    } else if (!selectedProduct && stockToAdd < 0) {
+        alert('❌ Initial stock cannot be negative!');
+        return;
+    }
+
+    // ---------- SEND DATA TO SERVER ----------
+    try {
+        const payload = { name, type, size, stock: stockToAdd, price, image };
+        const res = await fetch(`${API_URL}/products_add.php`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const responseText = await res.text();
+        const jsonResponse = JSON.parse(responseText);
+
+        if (jsonResponse && jsonResponse.status === 'ok') {
+            alert(jsonResponse.message || '✅ Product saved successfully!');
+            clearInputs();
+            selectedProduct = null;
+            loadProducts();
+        } else {
+            alert('❌ Failed to save product: ' + (jsonResponse.error || 'Unknown error'));
+        }
+    } catch (err) {
+        console.error('Save error:', err);
+        alert('❌ Error while saving: ' + err.message);
     }
 });
 
@@ -829,9 +841,9 @@ async function loadDashboard() {
         
         const dashboardPanel = document.querySelector('#dashboard .panel-body');
         dashboardPanel.innerHTML = `
-            <div style="display:grid; grid-template-columns:auto 1fr 1fr; gap:30px; align-items:start;">
-                <!-- Left Column: Stats Cards -->
-                <div class="stats-grid" style="width:300px;">
+            <div class="dashboard-layout">
+                <!-- Stats Cards -->
+                <div class="stats-grid">
                     <div class="stat-card" style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);">
                         <h3>Today's Sales</h3>
                         <p>₱${parseFloat(stats.today_sales || 0).toFixed(2)}</p>
@@ -846,16 +858,17 @@ async function loadDashboard() {
                     </div>
                 </div>
                 
-                <!-- Middle Column: Top Selling Products -->
-                <div class="chart-container">
-                    <h3>Top Selling Products</h3>
-                    <canvas id="productChart"></canvas>
-                </div>
-                
-                <!-- Right Column: Daily Sales -->
-                <div class="chart-container">
-                    <h3>Daily Sales (Last 7 Days)</h3>
-                    <canvas id="salesChart"></canvas>
+                <!-- Charts -->
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <h3>Top Selling Products</h3>
+                        <canvas id="productChart"></canvas>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <h3>Daily Sales (Last 7 Days)</h3>
+                        <canvas id="salesChart"></canvas>
+                    </div>
                 </div>
             </div>
         `;
