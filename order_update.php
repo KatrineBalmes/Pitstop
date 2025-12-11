@@ -1,5 +1,5 @@
 <?php
-// ordering/order_update.php - WITH STOCK RESTORATION ON CANCEL
+// ordering/order_update.php
 require_once 'db.php';
 
 try {
@@ -32,9 +32,9 @@ try {
     
     $previousStatus = $currentOrder['status'];
     
-    // ✅ RESTORE STOCK IF CANCELLING ORDER
+    // ✅ RESTORE STOCK AND ORDERS COUNT IF CANCELLING ORDER
     if ($status === 'cancelled' && $previousStatus !== 'cancelled') {
-        error_log("🔄 Restoring stock for cancelled order #{$orderId}");
+        error_log("🔄 Restoring stock and orders count for cancelled order #{$orderId}");
         
         // Get all items in this order
         $itemsSql = "SELECT product_name, product_size, quantity FROM order_items WHERE order_id = ?";
@@ -43,17 +43,34 @@ try {
         $itemsStmt->execute();
         $itemsResult = $itemsStmt->get_result();
         
-        // Restore stock for each item
+        // Check if 'orders' column exists
+        $checkColumnSql = "SHOW COLUMNS FROM products LIKE 'orders'";
+        $columnExists = $conn->query($checkColumnSql)->num_rows > 0;
+        
+        // Restore stock and orders count for each item
         while ($item = $itemsResult->fetch_assoc()) {
-            $updateStockSql = "UPDATE products SET stock = stock + ? WHERE name = ? AND size = ?";
-            $stockStmt = $conn->prepare($updateStockSql);
-            $stockStmt->bind_param('iss', $item['quantity'], $item['product_name'], $item['product_size']);
+            if($columnExists) {
+                // ✅ RESTORE both stock AND orders count
+                $updateStockSql = "UPDATE products SET stock = stock + ?, orders = orders - ? WHERE name = ? AND size = ?";
+                $stockStmt = $conn->prepare($updateStockSql);
+                $stockStmt->bind_param('iiss', $item['quantity'], $item['quantity'], $item['product_name'], $item['product_size']);
+            } else {
+                // Only restore stock if orders column doesn't exist
+                $updateStockSql = "UPDATE products SET stock = stock + ? WHERE name = ? AND size = ?";
+                $stockStmt = $conn->prepare($updateStockSql);
+                $stockStmt->bind_param('iss', $item['quantity'], $item['product_name'], $item['product_size']);
+            }
             
             if (!$stockStmt->execute()) {
                 throw new Exception('Failed to restore stock: ' . $stockStmt->error);
             }
             
-            error_log("✅ Restored {$item['quantity']} units of {$item['product_name']} ({$item['product_size']})");
+            if($columnExists) {
+                error_log("✅ Restored {$item['quantity']} units and REMOVED {$item['quantity']} from orders count for {$item['product_name']} ({$item['product_size']})");
+            } else {
+                error_log("✅ Restored {$item['quantity']} units of {$item['product_name']} ({$item['product_size']})");
+            }
+            
             $stockStmt->close();
         }
         
@@ -71,9 +88,7 @@ try {
     $stmt->close();
     
     // ✅ When order is COMPLETED (delivered, picked up, or ready for pickup)
-    // Move to SALES table so it appears in:
-    // 1. Admin Sales page
-    // 2. Customer Purchase History
+    // Move to SALES table - CANCELLED ORDERS WILL NOT BE ADDED TO SALES
     if(($status === 'delivered' || $status === 'already_picked_up' || $status === 'ready_for_pickup') 
        && !in_array($previousStatus, ['delivered', 'already_picked_up', 'ready_for_pickup'])) {
         
@@ -95,7 +110,7 @@ try {
             $checkResult = $checkStmt->get_result();
             
             if($checkResult->num_rows === 0) {
-                // ✅ INSERT into sales table
+                // ✅ INSERT into sales table (ONLY for completed orders, NOT cancelled)
                 $salesSql = "INSERT INTO sales 
                             (order_id, customer_name, customer_email, delivery_location, 
                              payment_method, delivery_person, total, sale_date) 
@@ -127,7 +142,7 @@ try {
     $conn->commit();
     
     $message = ($status === 'cancelled' && $previousStatus !== 'cancelled') 
-        ? 'Order cancelled and stock restored successfully' 
+        ? 'Order cancelled, stock and orders count restored successfully' 
         : 'Order updated successfully';
     
     echo json_encode([
