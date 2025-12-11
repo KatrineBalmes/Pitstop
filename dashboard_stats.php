@@ -1,21 +1,22 @@
 <?php
-// ordering/dashboard_stats.php - FIXED
+// ordering/dashboard_stats.php - FIXED: Cancelled orders excluded from Total Orders Today
 require_once 'db.php';
 
 try {
     $stats = [];
     
     // Today's sales from sales table
-    $todaySql = "SELECT COALESCE(SUM(total), 0) as today_sales 
+    $todaySql = "SELECT COALESCE(SUM(total), 0) as today_sales
                  FROM sales 
                  WHERE DATE(sale_date) = CURDATE()";
     $result = $conn->query($todaySql);
     $stats['today_sales'] = $result->fetch_assoc()['today_sales'];
     
-    // Today's order count
+    // Today's order count (excluding cancelled orders)
     $todayOrdersSql = "SELECT COUNT(*) as today_orders 
                        FROM orders 
-                       WHERE DATE(created_at) = CURDATE()";
+                       WHERE DATE(created_at) = CURDATE() 
+                       AND status != 'cancelled'";
     $result = $conn->query($todayOrdersSql);
     $stats['today_orders'] = $result->fetch_assoc()['today_orders'];
     
@@ -86,3 +87,4 @@ try {
 } finally {
     $conn->close();
 }
+?>
