@@ -11,8 +11,8 @@
 <header class="topbar">
     <div class="logo">Pitstop</div>
     <nav>
-        <a href="#about">About</a>
-        <a href="#contact">Contact</a>
+        <a href="#about" id="aboutLink">About</a>
+        <a href="#contact" id="contactLink">Contact</a>
     </nav>
 </header>
 
@@ -49,7 +49,141 @@
     </div>
 </main>
 
+<!-- About Modal -->
+<div id="aboutModal" class="modal">
+    <div class="modal-content">
+        <span class="modal-close" id="aboutClose">&times;</span>
+        <h2>About Pitstop</h2>
+        <div class="about-content">
+            <div class="about-image">
+                <img src="pitstop_logo.png" alt="Pitstop" onerror="this.style.display='none'">
+            </div>
+            <div class="about-text">
+                <p>Welcome to <strong>Pitstop</strong> ☕︎ your ultimate destination for authentic, mouthwatering foods in San Pascual, Batangas!</p>
+                
+                <p>At Pitstop, we believe that a great snacks with drinks is more than just a meal ☕︎ it's an experience. Every food we serve is crafted with passion, using only the freshest ingredients and homemade recipes that have been perfected over time.</p>
+                
+                <p>From our signature milktea, to our crispy fries and refreshing shakes, we're committed to delivering quality food that brings people together. Whether you're grabbing a quick bite or celebrating with friends and family, Pitstop is your go-to spot for delicious comfort food.</p>
+                
+                <p><strong>What Makes Us Special:</strong></p>
+                <ul>
+                    <li>100% good quality of ingredients</li>
+                    <li>Fresh ingredients delivered daily</li>
+                    <li>Homemade sauces and secret recipes</li>
+                    <li>Cozy and welcoming atmosphere</li>
+                    <li>Fast and friendly service</li>
+                </ul>
+                
+                <p>Visit us today mga Ka-Neigbours and discover why Pitstop has become a local favorite. We're not just serving foods we're serving happiness, one bite at a time!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Contact Modal -->
+<div id="contactModal" class="modal">
+    <div class="modal-content">
+        <span class="modal-close" id="contactClose">&times;</span>
+        <h2>Contact Us</h2>
+        <div class="contact-content">
+            <div class="contact-section">
+                <h3><i class="fas fa-map-marker-alt"></i> Visit Us</h3>
+                <p class="contact-detail">
+                    Barangay Alalum<br>
+                    San Pascual, Batangas City<br>
+                    Philippines
+                </p>
+            </div>
+            
+            <div class="contact-section">
+                <h3><i class="fas fa-envelope"></i> Email</h3>
+                <p class="contact-detail">
+                    <a href="mailto:pitstopalalumsanpascual@gmail.com">pitstopalalumsanpascual@gmail.com</a>
+                </p>
+            </div>
+            
+            <div class="contact-section">
+                <h3><i class="fas fa-phone"></i> Phone</h3>
+                <p class="contact-detail">
+                    <a href="tel:+639763343720">+63 976 334 3720</a>
+                </p>
+            </div>
+            
+            <div class="contact-section">
+                <h3><i class="fas fa-share-alt"></i> Follow Us</h3>
+                <div class="social-links">
+                    <a href="https://www.facebook.com/profile.php?id=61577206382624" target="_blank" class="social-btn facebook">
+                        <i class="fab fa-facebook-f"></i>
+                        <span>Facebook</span>
+                    </a>
+                    <a href="https://www.instagram.com/pitstopfoods" target="_blank" class="social-btn instagram">
+                        <i class="fab fa-instagram"></i>
+                        <span>Instagram</span>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="contact-hours">
+                <h3><i class="fas fa-clock"></i> Business Hours</h3>
+                <p class="contact-detail">
+                    Monday - Sunday: 8:00 AM - 9:00 PM
+                </p>
+            </div>
+            
+            <p class="contact-footer">
+                Have questions or feedback? We'd love to hear from you!<br>
+                Reach out through any of the channels above.
+            </p>
+        </div>
+    </div>
+</div>
+
 <script>
+// Modal functionality
+const aboutModal = document.getElementById('aboutModal');
+const contactModal = document.getElementById('contactModal');
+const aboutLink = document.getElementById('aboutLink');
+const contactLink = document.getElementById('contactLink');
+const aboutClose = document.getElementById('aboutClose');
+const contactClose = document.getElementById('contactClose');
+
+// Open modals
+aboutLink.addEventListener('click', function(e) {
+    e.preventDefault();
+    aboutModal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+});
+
+contactLink.addEventListener('click', function(e) {
+    e.preventDefault();
+    contactModal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+});
+
+// Close modals
+aboutClose.addEventListener('click', function() {
+    aboutModal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+});
+
+contactClose.addEventListener('click', function() {
+    contactModal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+});
+
+// Close modal when clicking outside
+window.addEventListener('click', function(e) {
+    if (e.target === aboutModal) {
+        aboutModal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+    if (e.target === contactModal) {
+        contactModal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+});
+
+// Existing login form code
 const loginForm = document.getElementById('loginForm');
 const emailInput = document.getElementById('email');
 const passwordInput = document.getElementById('password');
