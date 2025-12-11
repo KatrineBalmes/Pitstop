@@ -1,4 +1,4 @@
-// admin_interface.js - UPDATED WITH STOCK ALERT AND NO LOCATION CHART
+// admin_interface.js
 const API_URL = 'http://localhost/ordering';
 
 /* ---------------- FIXED NAVIGATION ---------------- */
@@ -26,7 +26,7 @@ navButtons.forEach(btn => {
         }
         if(target === 'stockAlert') {
             console.log('Loading stock alert...');
-            loadStockAlert(); // MAKE SURE THIS IS CALLED
+            loadStockAlert();
         }
         if(target === 'orderDetails') {
             console.log('Loading orders...');
@@ -212,6 +212,7 @@ async function loadStockAlert() {
         alert('Error loading stock alert: ' + err.message);
     }
 }
+
 /* ---------------- LOGOUT ---------------- */
 document.getElementById('logoutSidebarBtn').addEventListener('click', () => {
     if(confirm('Are you sure you want to logout?')) window.location.href = 'admin.html';
@@ -315,12 +316,21 @@ document.getElementById('searchOverallStocks').addEventListener('input', functio
 });
 
 /* ---------------- SELECT PRODUCT FOR EDIT ---------------- */
+/* ---------------- SELECT PRODUCT FOR EDIT ---------------- */
 let selectedProduct = null;
 
 function selectProduct(item){
     selectedProduct = item;
     
-    document.getElementById('itemName').value = item.name;
+    const itemNameField = document.getElementById('itemName');
+    itemNameField.value = item.name;
+    
+    // ✅ MAKE ITEM NAME READ-ONLY WHEN EDITING
+    itemNameField.readOnly = true;
+    itemNameField.style.backgroundColor = '#f0f0f0';
+    itemNameField.style.cursor = 'not-allowed';
+    itemNameField.title = 'Item name cannot be changed when editing';
+    
     document.getElementById('productType').value = item.type;
     document.getElementById('size').value = item.size;
     document.getElementById('stockQty').value = '';
@@ -339,7 +349,6 @@ function selectProduct(item){
     
     document.getElementById('addUpdateItem').textContent = 'Update Item';
 }
-
 /* ---------------- ADD / UPDATE PRODUCT ---------------- */
 document.getElementById('addUpdateItem').addEventListener('click', async () => {
     const name = document.getElementById('itemName').value.trim();
@@ -356,15 +365,16 @@ document.getElementById('addUpdateItem').addEventListener('click', async () => {
         return;
     }
 
-    // ---------- VALIDATE PRICE ----------
-    if (!/^\d+$/.test(priceInput)) {
-        alert('❌ Price must be a positive whole number (numbers only, no decimals)!');
+    // ---------- VALIDATE PRICE (ALLOW 2 DECIMAL PLACES) ----------
+    // ✅ NEW: Accept decimals with up to 2 decimal places
+    if (!/^\d+(\.\d{1,2})?$/.test(priceInput)) {
+        alert('❌ Price must be a positive number with up to 2 decimal places only!\nExamples: 50, 50.5, 50.75');
         document.getElementById('price').value = '';
         document.getElementById('price').focus();
         return;
     }
 
-    const price = parseInt(priceInput);
+    const price = parseFloat(priceInput);
     if (price <= 0) {
         alert('❌ Price must be greater than 0!');
         document.getElementById('price').value = '';
@@ -372,9 +382,9 @@ document.getElementById('addUpdateItem').addEventListener('click', async () => {
         return;
     }
 
-    if (price > 9999) {
-        alert('❌ Price cannot exceed ₱9,999!');
-        document.getElementById('price').value = '9999';
+    if (price > 9999.99) {
+        alert('❌ Price cannot exceed ₱9,999.99!');
+        document.getElementById('price').value = '9999.99';
         document.getElementById('price').focus();
         return;
     }
@@ -444,7 +454,6 @@ document.getElementById('addUpdateItem').addEventListener('click', async () => {
         alert('❌ Error while saving: ' + err.message);
     }
 });
-
 /* ---------------- DELETE PRODUCT ---------------- */
 document.getElementById('deleteItem').addEventListener('click', async () => {
     const name = document.getElementById('itemName').value.trim();
@@ -507,7 +516,15 @@ document.getElementById('productImage').addEventListener('change', e => {
 
 /* ---------------- CLEAR INPUTS ---------------- */
 function clearInputs(){
-    document.getElementById('itemName').value = '';
+    const itemNameField = document.getElementById('itemName');
+    itemNameField.value = '';
+    
+    // ✅ RE-ENABLE ITEM NAME FIELD WHEN CLEARING
+    itemNameField.readOnly = false;
+    itemNameField.style.backgroundColor = '';
+    itemNameField.style.cursor = '';
+    itemNameField.title = '';
+    
     document.getElementById('productType').value = 'Snacks';
     document.getElementById('size').value = 'Small';
     document.getElementById('stockQty').value = '';
@@ -519,9 +536,9 @@ function clearInputs(){
     selectedProduct = null;
 }
 
-/* ---------------- COMPLETE ORDER UPDATE FLOW ---------------- */
+/* ---------------- COMPLETE ORDER UPDATE FLOW WITH CANCEL FIX ---------------- */
 
-// 1. LOAD ORDERS - Only show ACTIVE orders (not completed)
+// 1. LOAD ORDERS - Only show ACTIVE orders (not completed or cancelled)
 async function loadOrders(){
     console.log('🔄 Loading orders...');
     
@@ -545,17 +562,18 @@ async function loadOrders(){
         const orderPanel = document.querySelector('#orderDetails .panel-body');
         orderPanel.innerHTML = '';
         
-        // ✅ FILTER OUT COMPLETED ORDERS - These should NOT appear in Orders
+        // ✅ FILTER OUT COMPLETED AND CANCELLED ORDERS
         const activeOrders = orders.filter(order => {
             const isCompleted = order.status === 'delivered' || 
                                order.status === 'ready_for_pickup' || 
-                               order.status === 'already_picked_up';
+                               order.status === 'already_picked_up' ||
+                               order.status === 'cancelled'; // ✅ CANCELLED ORDERS HIDDEN
             console.log(`Order #${order.id}: status="${order.status}", isCompleted=${isCompleted}`);
-            return !isCompleted; // Only show NOT completed orders
+            return !isCompleted; // Only show NOT completed/cancelled orders
         });
         
         console.log('✅ Active orders (should display):', activeOrders.length);
-        console.log('📊 Filtered out (completed):', orders.length - activeOrders.length);
+        console.log('📊 Filtered out (completed/cancelled):', orders.length - activeOrders.length);
         
         if(activeOrders.length === 0){
             orderPanel.innerHTML = `
@@ -594,7 +612,7 @@ async function loadOrders(){
                     <option value="processing" ${order.status === 'processing' ? 'selected' : ''}>Processing</option>
                     <option value="ready_for_pickup" ${order.status === 'ready_for_pickup' ? 'selected' : ''}>Ready for Pickup</option>
                     <option value="already_picked_up" ${order.status === 'already_picked_up' ? 'selected' : ''}>✅ Already Picked Up</option>
-                    <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                    <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>❌ Cancelled</option>
                 `;
             } else {
                 statusOptions = `
@@ -602,7 +620,7 @@ async function loadOrders(){
                     <option value="processing" ${order.status === 'processing' ? 'selected' : ''}>Processing</option>
                     <option value="out_for_delivery" ${order.status === 'out_for_delivery' ? 'selected' : ''}>Out for Delivery</option>
                     <option value="delivered" ${order.status === 'delivered' ? 'selected' : ''}>✅ Delivered</option>
-                    <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                    <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>❌ Cancelled</option>
                 `;
             }
             
@@ -664,7 +682,7 @@ async function loadOrders(){
     }
 }
 
-// 2. UPDATE ORDER STATUS - With auto-refresh
+// 2. UPDATE ORDER STATUS - With cancel confirmation and auto-refresh
 async function updateOrderStatus(orderId) {
     const statusDropdown = document.querySelector(`.status-dropdown[data-order-id="${orderId}"]`);
     const deliveryPersonDropdown = document.querySelector(`.delivery-person-dropdown[data-order-id="${orderId}"]`);
@@ -672,19 +690,27 @@ async function updateOrderStatus(orderId) {
     const status = statusDropdown.value;
     const deliveryPerson = deliveryPersonDropdown ? deliveryPersonDropdown.value : null;
     
-    // Check if marking as completed
+    // Check if marking as completed or cancelled
     const isCompleting = status === 'delivered' || 
                         status === 'already_picked_up' || 
                         status === 'ready_for_pickup';
     
+    const isCancelling = status === 'cancelled';
+    
     if(isCompleting) {
-        const confirmMsg = status === 'delivered' 
-            ? '✅ Mark this order as DELIVERED?\n\nThis will:\n• Remove from Orders\n• Add to Sales\n• Show in Customer Purchase History'
-            : status === 'already_picked_up'
-            ? '✅ Mark this order as ALREADY PICKED UP?\n\nThis will:\n• Remove from Orders\n• Add to Sales\n• Show in Customer Purchase History'
-            : '✅ Mark this order as READY FOR PICKUP?\n\nThis will:\n• Remove from Orders\n• Add to Sales\n• Show in Customer Purchase History';
-        
-        if(!confirm(confirmMsg)) {
+    const confirmMsg = status === 'delivered' 
+        ? '✅ Mark this order as DELIVERED?\n\nThis will:\n• Remove from Orders\n• Add to Sales\n• Show in Customer Purchase History'
+        : status === 'already_picked_up'
+        ? '✅ Mark this order as ALREADY PICKED UP?\n\nThis will:\n• Remove from Orders\n• Add to Sales\n• Show in Customer Purchase History'
+        : '✅ Mark this order as READY FOR PICKUP?\n\nThis will:\n• Remove from Orders\n• Add to Sales\n• Show in Customer Purchase History';
+    
+    if(!confirm(confirmMsg)) {
+        return;
+    }
+}
+    
+    if(isCancelling) {
+        if(!confirm('⚠️ CANCEL this order?\n\nThis will:\n• Remove from Orders\n• Restore stock quantities\n• Cannot be undone')) {
             return;
         }
     }
@@ -709,13 +735,15 @@ async function updateOrderStatus(orderId) {
             
             if(isCompleting) {
                 alert('✅ Order completed successfully!\n\n• Removed from Orders\n• Added to Sales\n• Customer can now view in Purchase History');
+            } else if(isCancelling) {
+                alert('✅ Order cancelled successfully!\n\n• Removed from Orders\n• Stock quantities restored');
             } else {
                 alert('Order status updated!');
             }
             
             // Refresh all relevant sections
             console.log('🔄 Refreshing all sections...');
-            await loadOrders();      // Refresh Orders (completed order will disappear)
+            await loadOrders();      // Refresh Orders (completed/cancelled order will disappear)
             await loadSales();       // Refresh Sales (completed order will appear)
             await loadDashboard();   // Refresh Dashboard stats
             
@@ -824,8 +852,8 @@ async function loadSales(){
 
 // Make updateOrderStatus globally available
 window.updateOrderStatus = updateOrderStatus;
-/* ---------------- DASHBOARD ---------------- */
-a/* ---------------- DASHBOARD WITH CHARTS ---------------- */
+
+/* ---------------- DASHBOARD WITH CHARTS ---------------- */
 async function loadDashboard() {
     console.log('📊 Loading dashboard...');
     
@@ -1045,10 +1073,9 @@ function createSalesChart(dailySales) {
     
     console.log('✅ Sales chart created');
 }
+
 /* ---------------- INITIAL LOAD ---------------- */
 document.addEventListener('DOMContentLoaded', () => {
     loadDashboard();
     console.log('Admin interface loaded. API URL:', API_URL);
 });
-
-window.updateOrderStatus = updateOrderStatus;
